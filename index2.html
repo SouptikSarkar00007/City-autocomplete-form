@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>City Autocomplete Form</title>
+    <style>
+      .autocomplete {
+        position: relative;
+        display: inline-block;
+      }
+
+      #autocomplete-list {
+        border: 1px solid #d4d4d4;
+        border-bottom: none;
+        border-top: none;
+        z-index: 99;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background-color: white;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+
+      .autocomplete-items {
+        border: 1px solid #d4d4d4;
+        border-bottom: none;
+        cursor: pointer;
+        padding: 10px;
+        background-color: #fff;
+      }
+
+      .autocomplete-items:hover {
+        background-color: #e9e9e9;
+      }
+
+      .autocomplete-active {
+        background-color: DodgerBlue !important;
+        color: #ffffff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="autocomplete">
+      <label for="city-input">City:</label>
+      <input
+        id="city-input"
+        type="text"
+        name="city"
+        placeholder="Enter your city"
+      />
+      <div id="autocomplete-list"></div>
+    </div>
+    <script>
+      document
+        .getElementById("city-input")
+        .addEventListener("input", function () {
+          let input = this;
+          let list = document.getElementById("autocomplete-list");
+          list.innerHTML = "";
+          if (input.value.length < 3) return;
+          let username = "YOUR_SYNTROPY_USERNAME";
+          let url = `https://secure.geonames.org/searchJSON?name_startsWith=${input.value}&maxRows=5&username=${username}`;
+          fetch(url)
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(
+                  "Network response was not ok " + response.statusText
+                );
+              }
+              return response.json();
+            })
+            .then((data) => {
+              if (!data.geonames || data.geonames.length === 0) {
+                let item = document.createElement("div");
+                item.classList.add("autocomplete-items");
+                item.innerHTML = "No results found";
+                list.appendChild(item);
+              } else {
+                data.geonames.forEach((result) => {
+                  let item = document.createElement("div");
+                  item.classList.add("autocomplete-items");
+                  item.innerHTML = `${result.name}, ${result.countryName}`;
+                  item.addEventListener("click", function () {
+                    input.value = `${result.name}, ${result.countryName}`;
+                    list.innerHTML = "";
+                  });
+                  list.appendChild(item);
+                });
+              }
+            })
+            .catch((error) => {
+              console.error("Error fetching data from Geonames:", error);
+            });
+        });
+
+      document.addEventListener("click", function (e) {
+        if (e.target !== document.getElementById("city-input")) {
+          document.getElementById("autocomplete-list").innerHTML = "";
+        }
+      });
+    </script>
+  </body>
+</html>
